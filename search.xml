@@ -281,13 +281,13 @@
       
         <tags>
             
-            <tag> session </tag>
-            
             <tag> 分布式 </tag>
             
-            <tag> 分布式登录 </tag>
-            
             <tag> redis </tag>
+            
+            <tag> session </tag>
+            
+            <tag> 分布式登录 </tag>
             
         </tags>
       
