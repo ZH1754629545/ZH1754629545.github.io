@@ -4,13 +4,27 @@
   
     
     <entry>
-      <title></title>
-      <link href="/2025/08/25/SQL%E4%BA%8B%E7%89%A9/"/>
-      <url>/2025/08/25/SQL%E4%BA%8B%E7%89%A9/</url>
+      <title>SQL 事务</title>
+      <link href="/2025/08/25/SQL-%E4%BA%8B%E7%89%A9/"/>
+      <url>/2025/08/25/SQL-%E4%BA%8B%E7%89%A9/</url>
       
-        <content type="html"><![CDATA[<p>title: SQL事物<br>author: ZH<br>tags:</p><ul><li>sql</li><li>事物<br>categories:</li><li>sql<br>date: 2025-08-25 19:05:00</li></ul><h1 id><a href="#" class="headerlink" title></a></h1><h1 id="事物"><a href="#事物" class="headerlink" title="事物"></a>事物</h1><h2 id="4个属性-ACID"><a href="#4个属性-ACID" class="headerlink" title="4个属性(ACID)"></a>4个属性(ACID)</h2><ul><li><strong>A：Atomicity</strong>，原子性，将所有SQL作为原子工作单元执行，要么全部执行，要么全部不执行；</li><li><strong>C：Consistency</strong>，一致性，事务完成后，所有数据的状态都是一致的，即A账户只要减去了100，B账户则必定加上了100；</li><li><strong>I：Isolation</strong>，隔离性，如果有多个事务并发执行，每个事务作出的修改必须与其他事务隔离；</li><li><strong>D：Durability</strong>，持久性，即事务完成后，对数据库数据的修改被持久化存储。</li></ul><p>对于单条SQL语句，数据库系统自动将其作为一个事务执行，这种事务被称为<em>隐式事务</em>。</p><p>要手动把多条SQL语句作为一个事务执行，使用<code>BEGIN</code>开启一个事务，使用<code>COMMIT</code>提交一个事务，这种事务被称为<em>显式事务</em>.</p><h2 id="可能会出现的问题"><a href="#可能会出现的问题" class="headerlink" title="可能会出现的问题"></a>可能会出现的问题</h2><h3 id="Dirty-Read（脏读）"><a href="#Dirty-Read（脏读）" class="headerlink" title="Dirty Read（脏读）"></a>Dirty Read（脏读）</h3><p>指的是事物A在读取的时候读取到事物B刚刚更新但未提交的数据。</p><h3 id="Non-Repeatable-Read-不可重复读"><a href="#Non-Repeatable-Read-不可重复读" class="headerlink" title="Non Repeatable Read(不可重复读)"></a>Non Repeatable Read(不可重复读)</h3><p>指的是事物A在事物开始时查询某行数据，之后事物B执行了更新操作导致事物A再读的时候两边数据不一致。</p><h3 id="Phantom-Read（幻读）"><a href="#Phantom-Read（幻读）" class="headerlink" title="Phantom Read（幻读）"></a>Phantom Read（幻读）</h3><p>在同一个事务中，使用相同的查询条件多次查询时，后续查询返回了之前没有的新记录。</p><p>**幻读和不可重复读的区别：**幻读和不可重复读都是读取了另一条已经提交的事务（这点就脏读不同）。所不同的是不可重复读查询的都是同一个数据项，而幻读针对的是一批数据整体（比如数据的个数）；不可重复读是指读到了已经提交的事务的更改数据(修改)，幻读是指读到了其他已经提交事务的新增或删除数据。</p><h2 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h2><p>对于两个并发执行的事务，如果涉及到操作同一条记录的时候，可能会发生问题。因为并发操作会带来数据的不一致性，包括脏读、不可重复读、幻读等。数据库系统提供了隔离级别来让我们有针对性地选择事务的隔离级别，避免数据不一致的问题。</p><p>SQL标准定义了4种隔离级别，分别对应可能出现的数据不一致的情况：</p><table><thead><tr><th>Isolation Level</th><th>脏读（Dirty Read）</th><th>不可重复读（Non Repeatable Read）</th><th>幻读（Phantom Read）</th></tr></thead><tbody><tr><td>Read Uncommitted</td><td>Yes</td><td>Yes</td><td>Yes</td></tr><tr><td>Read Committed</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>Repeatable Read</td><td>-</td><td>-</td><td>Yes</td></tr><tr><td>Serializable</td><td>-</td><td>-</td><td>-</td></tr></tbody></table><h3 id="Read-uncommitted-读未提交"><a href="#Read-uncommitted-读未提交" class="headerlink" title="Read uncommitted (读未提交)"></a>Read uncommitted (读未提交)</h3><p>  如果一个事务A已经开始写数据，则另一个事务B不允许写操作。但是可以读取这个事务A修改但未提交的数据。最低级别，任何情况都无法保证。</p><h3 id="Read-Committed-读已提交"><a href="#Read-Committed-读已提交" class="headerlink" title="Read Committed (读已提交)"></a>Read Committed (读已提交)</h3><p>  事务A只能读取事务B修改并且提交后的数据行，禁止访问事务B处于写状态的数据行。可以避免脏读。</p><h3 id="Repeatable-Read（可重复读取）"><a href="#Repeatable-Read（可重复读取）" class="headerlink" title="Repeatable Read（可重复读取）"></a>Repeatable Read（可重复读取）</h3><p>  事务A在读取数据行时，禁止其他事务对该数据行进行更改，但是可以进行读取操作。进行写操作时，禁止其他事务的任何操作。可以防止脏读和不可重复读。</p><h3 id="Serializable-可串行化"><a href="#Serializable-可串行化" class="headerlink" title="Serializable (可串行化)"></a>Serializable (可串行化)</h3><p>  提供严格的隔离级别，要求事务一个个的执行。不能并发执行。有效的防止脏读，不可重复读，幻读。</p><h3 id="-1"><a href="#-1" class="headerlink" title></a></h3>]]></content>
+        <content type="html"><![CDATA[<h1 id="事物"><a href="#事物" class="headerlink" title="事物"></a>事物</h1><h2 id="4个属性-ACID"><a href="#4个属性-ACID" class="headerlink" title="4个属性(ACID)"></a>4个属性(ACID)</h2><ul><li><strong>A：Atomicity</strong>，原子性，将所有SQL作为原子工作单元执行，要么全部执行，要么全部不执行；</li><li><strong>C：Consistency</strong>，一致性，事务完成后，所有数据的状态都是一致的，即A账户只要减去了100，B账户则必定加上了100；</li><li><strong>I：Isolation</strong>，隔离性，如果有多个事务并发执行，每个事务作出的修改必须与其他事务隔离；</li><li><strong>D：Durability</strong>，持久性，即事务完成后，对数据库数据的修改被持久化存储。</li></ul><p>对于单条SQL语句，数据库系统自动将其作为一个事务执行，这种事务被称为<em>隐式事务</em>。</p><p>要手动把多条SQL语句作为一个事务执行，使用<code>BEGIN</code>开启一个事务，使用<code>COMMIT</code>提交一个事务，这种事务被称为<em>显式事务</em>.</p><h2 id="可能会出现的问题"><a href="#可能会出现的问题" class="headerlink" title="可能会出现的问题"></a>可能会出现的问题</h2><h3 id="Dirty-Read（脏读）"><a href="#Dirty-Read（脏读）" class="headerlink" title="Dirty Read（脏读）"></a>Dirty Read（脏读）</h3><p>指的是事物A在读取的时候读取到事物B刚刚更新但未提交的数据。</p><h3 id="Non-Repeatable-Read-不可重复读"><a href="#Non-Repeatable-Read-不可重复读" class="headerlink" title="Non Repeatable Read(不可重复读)"></a>Non Repeatable Read(不可重复读)</h3><p>指的是事物A在事物开始时查询某行数据，之后事物B执行了更新操作导致事物A再读的时候两边数据不一致。</p><h3 id="Phantom-Read（幻读）"><a href="#Phantom-Read（幻读）" class="headerlink" title="Phantom Read（幻读）"></a>Phantom Read（幻读）</h3><p>在同一个事务中，使用相同的查询条件多次查询时，后续查询返回了之前没有的新记录。</p><p>**幻读和不可重复读的区别：**幻读和不可重复读都是读取了另一条已经提交的事务（这点就脏读不同）。所不同的是不可重复读查询的都是同一个数据项，而幻读针对的是一批数据整体（比如数据的个数）；不可重复读是指读到了已经提交的事务的更改数据(修改)，幻读是指读到了其他已经提交事务的新增或删除数据。</p><h2 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h2><p>对于两个并发执行的事务，如果涉及到操作同一条记录的时候，可能会发生问题。因为并发操作会带来数据的不一致性，包括脏读、不可重复读、幻读等。数据库系统提供了隔离级别来让我们有针对性地选择事务的隔离级别，避免数据不一致的问题。</p><p>SQL标准定义了4种隔离级别，分别对应可能出现的数据不一致的情况：</p><table><thead><tr><th>Isolation Level</th><th>脏读（Dirty Read）</th><th>不可重复读（Non Repeatable Read）</th><th>幻读（Phantom Read）</th></tr></thead><tbody><tr><td>Read Uncommitted</td><td>Yes</td><td>Yes</td><td>Yes</td></tr><tr><td>Read Committed</td><td>-</td><td>Yes</td><td>Yes</td></tr><tr><td>Repeatable Read</td><td>-</td><td>-</td><td>Yes</td></tr><tr><td>Serializable</td><td>-</td><td>-</td><td>-</td></tr></tbody></table><h3 id="Read-uncommitted-读未提交"><a href="#Read-uncommitted-读未提交" class="headerlink" title="Read uncommitted (读未提交)"></a>Read uncommitted (读未提交)</h3><p>  如果一个事务A已经开始写数据，则另一个事务B不允许写操作。但是可以读取这个事务A修改但未提交的数据。最低级别，任何情况都无法保证。</p><h3 id="Read-Committed-读已提交"><a href="#Read-Committed-读已提交" class="headerlink" title="Read Committed (读已提交)"></a>Read Committed (读已提交)</h3><p>  事务A只能读取事务B修改并且提交后的数据行，禁止访问事务B处于写状态的数据行。可以避免脏读。</p><h3 id="Repeatable-Read（可重复读取）"><a href="#Repeatable-Read（可重复读取）" class="headerlink" title="Repeatable Read（可重复读取）"></a>Repeatable Read（可重复读取）</h3><p>  事务A在读取数据行时，禁止其他事务对该数据行进行更改，但是可以进行读取操作。进行写操作时，禁止其他事务的任何操作。可以防止脏读和不可重复读。</p><h3 id="Serializable-可串行化"><a href="#Serializable-可串行化" class="headerlink" title="Serializable (可串行化)"></a>Serializable (可串行化)</h3><p>  提供严格的隔离级别，要求事务一个个的执行。不能并发执行。有效的防止脏读，不可重复读，幻读。</p>]]></content>
       
       
+      <categories>
+          
+          <category> sql </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> sql </tag>
+            
+            <tag> 事物 </tag>
+            
+        </tags>
       
     </entry>
     
@@ -527,9 +541,9 @@
     
     
     <entry>
-      <title>标签</title>
-      <link href="/tags/index.html"/>
-      <url>/tags/index.html</url>
+      <title>分类</title>
+      <link href="/categories/index.html"/>
+      <url>/categories/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       
@@ -538,9 +552,9 @@
     
     
     <entry>
-      <title>分类</title>
-      <link href="/categories/index.html"/>
-      <url>/categories/index.html</url>
+      <title>标签</title>
+      <link href="/tags/index.html"/>
+      <url>/tags/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       
